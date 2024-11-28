@@ -4,7 +4,7 @@ pipeline {
     environment {
         ACR_LOGIN_SERVER = 'linuxcontainerregistry01.azurecr.io'
         ACR_USERNAME = 'linuxcontainerregistry01'
-        ACR_PASSWORD =  BHPtrpaFy+ZhAtKwXvPx1kmHK2Gr4SvfQ8vxKHu2HF+ACRBAfZSK
+        ACR_PASSWORD =  'BHPtrpaFy+ZhAtKwXvPx1kmHK2Gr4SvfQ8vxKHu2HF+ACRBAfZSK'
         DOCKER_IMAGE = "${ACR_LOGIN_SERVER}/cronjob"  // Docker image name
     }
 
