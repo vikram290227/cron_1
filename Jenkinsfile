@@ -26,22 +26,19 @@ pipeline {
             }
         }
 
-       stage('Login to ACR') {
-    steps {
-        script {
-            withCredentials([string(credentialsId: 'acr-client-secret', variable: 'ACR_CLIENT_SECRET')]) {
-                // Add a step to show environment variable values except secrets
-                bat """
-                echo AZ CLI PATH: %PATH%
-                echo Logging in to Azure CLI with Service Principal
-                az login --service-principal --username "<service-principal-client-id>" --password "$ACR_CLIENT_SECRET" --tenant "<tenant-id>"
-                az acr login --name linuxcontainerregistry01
-                """
+        stage('Login to ACR') {
+            steps {
+                script {
+                    // Login to Azure using Service Principal
+                    withCredentials([string(credentialsId: 'acr-client-secret', variable: 'ACR_CLIENT_SECRET')]) {
+                        bat """
+                        call az login --service-principal --username %ACR_CLIENT_ID% --password %ACR_CLIENT_SECRET% --tenant %ACR_TENANT_ID%
+                        call az acr login --name ${env.ACR_LOGIN_SERVER.split('\\.')[0]}
+                        """
+                    }
+                }
             }
         }
-    }
-}
-
 
         stage('Push Docker Image to ACR') {
             steps {
