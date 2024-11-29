@@ -3,8 +3,8 @@ pipeline {
 
     environment {
         ACR_LOGIN_SERVER = 'linuxcontainerregistry01.azurecr.io'
-        ACR_CLIENT_ID = '<service-principal-client-id>'      // Replace with actual Service Principal client ID or use an environment variable
-        ACR_TENANT_ID = '<tenant-id>'                        // Replace with actual Azure Tenant ID or use an environment variable
+        ACR_CLIENT_ID = '<service-principal-client-id>'      // Replace with actual Service Principal client ID
+        ACR_TENANT_ID = '<tenant-id>'                        // Replace with actual Azure Tenant ID
         DOCKER_IMAGE = "${ACR_LOGIN_SERVER}/cronjob"
     }
 
@@ -29,9 +29,10 @@ pipeline {
         stage('Login to ACR') {
             steps {
                 script {
+                    // Login to Azure using Service Principal
                     withCredentials([string(credentialsId: 'acr-client-secret', variable: 'ACR_CLIENT_SECRET')]) {
                         bat """
-                        az login --service-principal -u ${env.ACR_CLIENT_ID} -p $ACR_CLIENT_SECRET --tenant ${env.ACR_TENANT_ID}
+                        az login --service-principal --username %ACR_CLIENT_ID% --password %ACR_CLIENT_SECRET% --tenant %ACR_TENANT_ID%
                         az acr login --name ${env.ACR_LOGIN_SERVER.split('\\.')[0]}
                         """
                     }
