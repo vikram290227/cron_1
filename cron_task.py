@@ -1,20 +1,18 @@
-# Use a lightweight Python base image
-FROM python:3.9-slim
+import schedule
+import time
+from datetime import datetime
 
-# Set the working directory
-WORKDIR /app
+#Task
+def my_cron_task():
+    now = datetime.now()
+    print(f"Running the cron job task at {now.strftime('%Y-%m-%d %H:%M:%S')}")
 
-# Copy the Python script and dependencies
-COPY cronjob-script.py /app/
-COPY requirements.txt /app/
+# Schedule
+schedule.every(1).minutes.do(my_cron_task)  # Runs every 1 min
 
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
 
-# Default environment variables
-ENV JOB_NAME="default-job" \
-    VERSION="v1" \
-    INTERVAL_MINUTES=5
-
-# Command to run the script
-CMD ["python", "cron_task.py"]
+# Run schedule
+print("Starting the cron job...")
+while True:
+    schedule.run_pending()  
+    time.sleep(5)  
