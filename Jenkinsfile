@@ -27,16 +27,18 @@ pipeline {
             }
         }
 
-        stage('Login to ACR') {
-            steps {
-                script {
-                    bat """
-                    az login --service-principal -u ${ACR_CLIENT_ID} -p ${ACR_CLIENT_SECRET} --tenant ${ACR_TENANT_ID}
-                    az acr login --name linuxcontainerregistry01
-                    """
-                }
+       stage('Login to ACR') {
+    steps {
+        script {
+            withCredentials([string(credentialsId: 'acr-client-secret', variable: 'ACR_CLIENT_SECRET')]) {
+                bat """
+                az login --service-principal -u ${env.ACR_CLIENT_ID} -p $ACR_CLIENT_SECRET --tenant ${env.ACR_TENANT_ID}
+                az acr login --name linuxcontainerregistry01
+                """
             }
         }
+    }
+}
 
         stage('Push Docker Image to ACR') {
             steps {
