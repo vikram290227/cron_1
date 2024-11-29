@@ -5,7 +5,7 @@ pipeline {
         ACR_LOGIN_SERVER = 'linuxcontainerregistry01.azurecr.io'
         ACR_CLIENT_ID = '<service-principal-client-id>'      // Service Principal client ID
         ACR_TENANT_ID = '<tenant-id>'                        // Azure Tenant ID
-        ACR_CLIENT_SECRET = credentials('acr-client-secret') // Use Jenkins credentials to store client secret
+        ACR_CLIENT_SECRET = credentials('acr-client-secret') // Jenkins credentials reference
         DOCKER_IMAGE = "${ACR_LOGIN_SERVER}/cronjob"
     }
 
