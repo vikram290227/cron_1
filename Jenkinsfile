@@ -46,7 +46,7 @@ pipeline {
                 script {
                     def version = "v${env.BUILD_NUMBER}"
                     bat """
-                     docker login linuxcontainerregistry01.azurecr.io  --Username: afb160bc-5751-4296-9539-770dc63149b0 --Password: K9i8Q~UlwCjYqN3i4uSDvxAjQ2xtrqGy4hF76bIP
+                    docker login linuxcontainerregistry01.azurecr.io -u afb160bc-5751-4296-9539-770dc63149b0 -p "K9i8Q~UlwCjYqN3i4uSDvxAjQ2xtrqGy4hF76bIP"
                     docker push ${DOCKER_IMAGE}:${version}
                     """
                 }
