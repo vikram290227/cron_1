@@ -2,16 +2,19 @@ apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: cronjob-chart
-  namespace: {{ .Release.Namespace }}
 spec:
-  schedule: "*/5 * * * *"  # Example schedule
+  schedule: "*/5 * * * *"
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
   jobTemplate:
     spec:
       template:
         spec:
           containers:
-          - name: {{ .Chart.Name }}
-            image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-            imagePullPolicy: IfNotPresent
-            command: ["sh", "-c", "echo Running Cron Job"]
+          - name: helm-chart
+            image: linuxcontainerregistry01.azurecr.io/cronjob:v53
+            command:
+              - python
+              - /app/cron_task.py
           restartPolicy: OnFailure
+
