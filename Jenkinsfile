@@ -6,6 +6,7 @@ pipeline {
         ACR_CLIENT_ID = '<service-principal-client-id>'      // Replace with actual Service Principal client ID
         ACR_TENANT_ID = '<tenant-id>'                        // Replace with actual Azure Tenant ID
         DOCKER_IMAGE = "${ACR_LOGIN_SERVER}/cronjob"
+        HELM_CHART_PATH = 'helm-chart'                      // Path to your Helm chart
     }
 
     stages {
@@ -27,19 +28,19 @@ pipeline {
         }
 
         stage('Login to ACR') {
-    steps {
-        script {
-            withCredentials([string(credentialsId: 'acr-client-secret', variable: 'ACR_CLIENT_SECRET')]) {
-                bat """
-                echo AZ CLI PATH: %PATH%
-                echo Logging in to Azure CLI with Service Principal
-                az login --service-principal --username "afb160bc-5751-4296-9539-770dc63149b0" --password "K9i8Q~UlwCjYqN3i4uSDvxAjQ2xtrqGy4hF76bIP" --tenant "25aa82fa-747f-4dd4-8b6d-a3014328e38b"
-                az acr login --name linuxcontainerregistry01
-                """
+            steps {
+                script {
+                    withCredentials([string(credentialsId: 'acr-client-secret', variable: 'ACR_CLIENT_SECRET')]) {
+                        bat """
+                        echo AZ CLI PATH: %PATH%
+                        echo Logging in to Azure CLI with Service Principal
+                        az login --service-principal --username "afb160bc-5751-4296-9539-770dc63149b0" --password "K9i8Q~UlwCjYqN3i4uSDvxAjQ2xtrqGy4hF76bIP" --tenant "25aa82fa-747f-4dd4-8b6d-a3014328e38b"
+                        az acr login --name linuxcontainerregistry01
+                        """
+                    }
+                }
             }
         }
-    }
-}
 
         stage('Push Docker Image to ACR') {
             steps {
@@ -52,11 +53,24 @@ pipeline {
                 }
             }
         }
+
+        stage('Deploy to Kubernetes using Helm') {
+            steps {
+                script {
+                    def version = "v${env.BUILD_NUMBER}"
+                    withCredentials([string(credentialsId: 'kube-config', variable: 'KUBECONFIG_PATH')]) {
+                        bat """
+                        helm upgrade --install cronjob-chart ${HELM_CHART_PATH} --set image.repository=${DOCKER_IMAGE},image.tag=${version} --kubeconfig %KUBECONFIG_PATH%
+                        """
+                    }
+                }
+            }
+        }
     }
 
     post {
         success {
-            echo 'Docker image has been successfully pushed to ACR!'
+            echo 'Docker image has been successfully pushed to ACR and deployed to Kubernetes using Helm!'
         }
         failure {
             echo 'Pipeline failed. Check the logs for details.'
