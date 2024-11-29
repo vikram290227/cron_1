@@ -60,7 +60,9 @@ pipeline {
                     def version = "v${env.BUILD_NUMBER}"
                     withCredentials([file(credentialsId: 'kube-config', variable: 'KUBECONFIG')]) {
                         bat """
-                        helm upgrade --install cronjob-chart ${HELM_CHART_PATH} --set image.repository=${DOCKER_IMAGE},image.tag=${version} --kubeconfig %KUBECONFIG_PATH%
+                        "C:\\Users\\saiga\\AppData\\Local\\Microsoft\\WinGet\\Packages\\Helm.Helm_Microsoft.Winget.Source_8wekyb3d8bbwe\\windows-amd64\\helm.exe" upgrade --install cronjob-chart ${HELM_CHART_PATH} \
+                            --set image.repository=${DOCKER_IMAGE},image.tag=${version} \
+                            --kubeconfig %KUBECONFIG%
                         """
                     }
                 }
