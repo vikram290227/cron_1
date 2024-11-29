@@ -3,9 +3,10 @@ pipeline {
 
     environment {
         ACR_LOGIN_SERVER = 'linuxcontainerregistry01.azurecr.io'
-        ACR_USERNAME = 'linuxcontainerregistry01'
-        ACR_PASSWORD = 'BHPtrpaFy+ZhAtKwXvPx1kmHK2Gr4SvfQ8vxKHu2HF+ACRBAfZSK'
-        DOCKER_IMAGE = "${ACR_LOGIN_SERVER}/cronjob"  // Docker image name
+        ACR_CLIENT_ID = '<service-principal-client-id>'      // Service Principal client ID
+        ACR_TENANT_ID = '<tenant-id>'                        // Azure Tenant ID
+        ACR_CLIENT_SECRET = credentials('acr-client-secret') // Use Jenkins credentials to store client secret
+        DOCKER_IMAGE = "${ACR_LOGIN_SERVER}/cronjob"
     }
 
     stages {
@@ -18,9 +19,20 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    def version = "v${env.BUILD_NUMBER}" // Use Jenkins build number for version
+                    def version = "v${env.BUILD_NUMBER}"
                     bat """
                     docker build -t ${DOCKER_IMAGE}:${version} .
+                    """
+                }
+            }
+        }
+
+        stage('Login to ACR') {
+            steps {
+                script {
+                    bat """
+                    az login --service-principal -u ${ACR_CLIENT_ID} -p ${ACR_CLIENT_SECRET} --tenant ${ACR_TENANT_ID}
+                    az acr login --name linuxcontainerregistry01
                     """
                 }
             }
@@ -31,7 +43,6 @@ pipeline {
                 script {
                     def version = "v${env.BUILD_NUMBER}"
                     bat """
-                    echo ${ACR_PASSWORD} | docker login ${ACR_LOGIN_SERVER} --username ${ACR_USERNAME} --password-stdin
                     docker push ${DOCKER_IMAGE}:${version}
                     """
                 }
