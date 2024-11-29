@@ -5,7 +5,7 @@ FROM python:3.9-slim
 WORKDIR /app
 
 # Copy the Python script and dependencies
-COPY cronjob-script.py /app/
+COPY cron_task.py /app/
 COPY requirements.txt /app/
 
 # Install Python dependencies
