@@ -33,7 +33,7 @@ pipeline {
                 bat """
                 echo AZ CLI PATH: %PATH%
                 echo Logging in to Azure CLI with Service Principal
-                az login --service-principal --username "<service-principal-client-id>" --password "%ACR_CLIENT_SECRET%" --tenant "<tenant-id>" --debug
+                az login --service-principal --username "afb160bc-5751-4296-9539-770dc63149b0" --password "K9i8Q~UlwCjYqN3i4uSDvxAjQ2xtrqGy4hF76bIP" --tenant "25aa82fa-747f-4dd4-8b6d-a3014328e38b"
                 az acr login --name linuxcontainerregistry01
                 """
             }
