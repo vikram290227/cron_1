@@ -16,4 +16,4 @@ spec:
       - name: helm-chart
         image: linuxcontainerregistry01.azurecr.io/cronjob:v60
         command: ["python", "/app/cron_task.py"]
-      restartPolicy: OnFailure
+      restartPolicy: Always
