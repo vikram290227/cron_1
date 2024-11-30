@@ -1,1 +1,16 @@
-schedule
+# Required for scheduling cron tasks
+schedule==1.2.0
+
+# For logging enhancements
+loguru==0.6.0
+
+# For making HTTP requests (useful for task1 or task2)
+requests==2.31.0
+
+# For parsing and working with JSON (if tasks involve API integration)
+simplejson==3.19.1
+
+# For working with environment variables (if needed in scripts)
+python-dotenv==1.0.0
+
+# Add any task-specific dependencies below
