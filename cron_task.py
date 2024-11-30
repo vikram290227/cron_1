@@ -3,8 +3,16 @@ import time
 import logging
 from datetime import datetime
 
-# Set up logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
+# Set up logging to both console and file
+log_filename = "cron_task.log"
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(message)s",
+    handlers=[
+        logging.StreamHandler(),  # Log to console
+        logging.FileHandler(log_filename, mode='a')  # Log to file
+    ]
+)
 
 # Define the task
 def my_cron_task():
@@ -23,3 +31,5 @@ try:
         time.sleep(5)           # Sleep to reduce CPU usage
 except Exception as e:
     logging.error(f"Error occurred: {e}")
+except KeyboardInterrupt:
+    logging.info("Cron job scheduler stopped.")
