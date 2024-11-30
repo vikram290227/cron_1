@@ -1,0 +1,17 @@
+image:
+  repository: linuxcontainerregistry01.azurecr.io/cronjob
+  tag: v1
+
+cronjob:
+  schedule: "*/2 * * * *"
+  command: ["python", "/app/task1.py"]
+  successfulJobsHistoryLimit: 5
+  failedJobsHistoryLimit: 2
+  restartPolicy: OnFailure
+resources:
+  limits:
+    cpu: "200m"
+    memory: "128Mi"
+  requests:
+    cpu: "100m"
+    memory: "64Mi"
