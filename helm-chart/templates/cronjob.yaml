@@ -17,4 +17,3 @@ spec:
             command:
               - python
               - /app/cron_task.py
-          restartPolicy: Never
