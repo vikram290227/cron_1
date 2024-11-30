@@ -1,5 +1,3 @@
-import schedule
-import time
 import logging
 from datetime import datetime
 
@@ -19,17 +17,12 @@ def my_cron_task():
     now = datetime.now()
     logging.info(f"Running the cron job task at {now.strftime('%Y-%m-%d %H:%M:%S')}")
 
-# Schedule the task
-schedule.every(1).minutes.do(my_cron_task)  # Run every 1 minute
-logging.info("Cron job scheduled to run every 1 minute")
-
-# Run the scheduler
+# Run the task
 try:
-    while True:
-        logging.info("Scheduler is running...")
-        schedule.run_pending()  # Check for pending jobs
-        time.sleep(5)           # Sleep to reduce CPU usage
+    logging.info("Starting the cron job...")
+    my_cron_task()  # Execute the task
+    logging.info("Cron job completed successfully.")
 except Exception as e:
     logging.error(f"Error occurred: {e}")
 except KeyboardInterrupt:
-    logging.info("Cron job scheduler stopped.")
+    logging.info("Cron job interrupted by user.")
