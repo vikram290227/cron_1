@@ -2,67 +2,67 @@ pipeline {
     agent any
 
     environment {
-        ACR_LOGIN_SERVER = 'linuxcontainerregistry01.azurecr.io'
-        ACR_CLIENT_ID = '<service-principal-client-id>'      // Replace with actual Service Principal client ID
-        ACR_TENANT_ID = '<tenant-id>'                        // Replace with actual Azure Tenant ID
-        DOCKER_IMAGE = "${ACR_LOGIN_SERVER}/cronjob"
-        HELM_CHART_PATH = 'helm-chart'                      // Path to your Helm chart
+        DOCKER_REGISTRY = "linuxcontainerregistry01.azurecr.io"
+        IMAGE_NAME = "cronjob"
+        HELM_CHART_PATH = "./helm-chart"
+        KUBECONFIG = credentials('kubeconfig') // Kubernetes config from Jenkins credentials
+        ACR_CREDENTIALS = credentials('acr_credentials') // ACR credentials from Jenkins credentials
+    }
+
+    parameters {
+        string(name: 'IMAGE_TAG', defaultValue: 'latest', description: 'Tag for the Docker image to deploy')
     }
 
     stages {
         stage('Clone Repository') {
             steps {
-                checkout scm
+                git branch: 'main', url: 'https://github.com/vikram290227/cron_1.git'
             }
         }
 
         stage('Build Docker Image') {
             steps {
                 script {
-                    def version = "v${env.BUILD_NUMBER}"
-                    bat """
-                    docker build -t ${DOCKER_IMAGE}:${version} .
+                    echo "Building Docker image with tag: ${params.IMAGE_TAG}"
+                    sh """
+                    docker build -t $DOCKER_REGISTRY/$IMAGE_NAME:${params.IMAGE_TAG} .
                     """
                 }
             }
         }
 
-        stage('Login to ACR') {
+        stage('Push Docker Image') {
             steps {
                 script {
-                    withCredentials([string(credentialsId: 'acr-client-secret', variable: 'ACR_CLIENT_SECRET')]) {
-                        bat """
-                        echo AZ CLI PATH: %PATH%
-                        echo Logging in to Azure CLI with Service Principal
-                        az login --service-principal --username "afb160bc-5751-4296-9539-770dc63149b0" --password "K9i8Q~UlwCjYqN3i4uSDvxAjQ2xtrqGy4hF76bIP" --tenant "25aa82fa-747f-4dd4-8b6d-a3014328e38b"
-                        az acr login --name linuxcontainerregistry01
-                        """
-                    }
-                }
-            }
-        }
-
-        stage('Push Docker Image to ACR') {
-            steps {
-                script {
-                    def version = "v${env.BUILD_NUMBER}"
-                    bat """
-                    docker login linuxcontainerregistry01.azurecr.io -u afb160bc-5751-4296-9539-770dc63149b0 -p "K9i8Q~UlwCjYqN3i4uSDvxAjQ2xtrqGy4hF76bIP"
-                    docker push ${DOCKER_IMAGE}:${version}
+                    echo "Pushing Docker image to registry: $DOCKER_REGISTRY"
+                    sh """
+                    docker login $DOCKER_REGISTRY -u ${ACR_CREDENTIALS_USR} -p ${ACR_CREDENTIALS_PSW}
+                    docker push $DOCKER_REGISTRY/$IMAGE_NAME:${params.IMAGE_TAG}
                     """
                 }
             }
         }
 
-        stage('Deploy to Kubernetes using Helm') {
+        stage('Deploy with Helm') {
             steps {
                 script {
-                    def version = "v${env.BUILD_NUMBER}"
-                    withCredentials([file(credentialsId: 'kube-config', variable: 'KUBECONFIG')]) {
-                        bat """
-                        "C:\\Users\\saiga\\AppData\\Local\\Microsoft\\WinGet\\Packages\\Helm.Helm_Microsoft.Winget.Source_8wekyb3d8bbwe\\windows-amd64\\helm.exe" upgrade --install cronjob-chart ${HELM_CHART_PATH} \
-                            --set image.repository=${DOCKER_IMAGE},image.tag=${version} \
-                            --kubeconfig %KUBECONFIG%
+                    echo "Deploying Helm releases with image tag: ${params.IMAGE_TAG}"
+                    
+                    // Define the tasks and their respective values files
+                    def tasks = [
+                        [name: "task1-release", valuesFile: "values-cronjob-task1.yaml"],
+                        [name: "task2-release", valuesFile: "values-cronjob-task2.yaml"],
+                        [name: "task3-release", valuesFile: "values-cronjob-task3.yaml"]
+                    ]
+
+                    // Loop through tasks and deploy each with Helm
+                    tasks.each { task ->
+                        sh """
+                        helm upgrade --install ${task.name} $HELM_CHART_PATH \
+                            -f $HELM_CHART_PATH/${task.valuesFile} \
+                            --set image.repository=$DOCKER_REGISTRY/$IMAGE_NAME \
+                            --set image.tag=${params.IMAGE_TAG} \
+                            --kubeconfig ${env.KUBECONFIG}
                         """
                     }
                 }
@@ -72,10 +72,10 @@ pipeline {
 
     post {
         success {
-            echo 'Docker image has been successfully pushed to ACR and deployed to Kubernetes using Helm!'
+            echo "Pipeline executed successfully. All Helm releases deployed with image version: ${params.IMAGE_TAG}"
         }
         failure {
-            echo 'Pipeline failed. Check the logs for details.'
+            echo "Pipeline failed. Check the logs for details."
         }
     }
 }
