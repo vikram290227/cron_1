@@ -16,6 +16,7 @@ pipeline {
     stages {
         stage('Clone Repository') {
             steps {
+                echo "Cloning repository..."
                 git branch: 'main', url: 'https://github.com/vikram290227/cron_1.git'
             }
         }
@@ -23,7 +24,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    echo "Building Docker image with tag: ${params.IMAGE_TAG}"
+                    echo "Building Docker image: $DOCKER_REGISTRY/$IMAGE_NAME:${params.IMAGE_TAG}"
                     sh """
                     docker build -t $DOCKER_REGISTRY/$IMAGE_NAME:${params.IMAGE_TAG} .
                     """
@@ -34,7 +35,7 @@ pipeline {
         stage('Push Docker Image') {
             steps {
                 script {
-                    echo "Pushing Docker image to registry: $DOCKER_REGISTRY"
+                    echo "Pushing Docker image to $DOCKER_REGISTRY"
                     sh """
                     docker login $DOCKER_REGISTRY -u ${ACR_CREDENTIALS_USR} -p ${ACR_CREDENTIALS_PSW}
                     docker push $DOCKER_REGISTRY/$IMAGE_NAME:${params.IMAGE_TAG}
@@ -46,17 +47,18 @@ pipeline {
         stage('Deploy with Helm') {
             steps {
                 script {
-                    echo "Deploying Helm releases with image tag: ${params.IMAGE_TAG}"
-                    
-                    // Define the tasks and their respective values files
+                    echo "Deploying with Helm..."
+
+                    // Define task configurations
                     def tasks = [
                         [name: "task1-release", valuesFile: "values-cronjob-task1.yaml"],
                         [name: "task2-release", valuesFile: "values-cronjob-task2.yaml"],
                         [name: "task3-release", valuesFile: "values-cronjob-task3.yaml"]
                     ]
 
-                    // Loop through tasks and deploy each with Helm
+                    // Deploy each task
                     tasks.each { task ->
+                        echo "Deploying ${task.name} with values file: ${task.valuesFile}"
                         sh """
                         helm upgrade --install ${task.name} $HELM_CHART_PATH \
                             -f $HELM_CHART_PATH/${task.valuesFile} \
@@ -72,10 +74,10 @@ pipeline {
 
     post {
         success {
-            echo "Pipeline executed successfully. All Helm releases deployed with image version: ${params.IMAGE_TAG}"
+            echo "Pipeline completed successfully. All Helm releases deployed with image tag: ${params.IMAGE_TAG}"
         }
         failure {
-            echo "Pipeline failed. Check the logs for details."
+            echo "Pipeline failed. Please review the logs to debug the issue."
         }
     }
 }
