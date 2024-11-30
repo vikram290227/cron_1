@@ -1,0 +1,17 @@
+image:
+  repository: linuxcontainerregistry01.azurecr.io/cronjob
+  tag: v2
+
+cronjob:
+  schedule: "0 0 * * *"  # Run at midnight
+  command: ["python", "/app/task2.py"]
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  restartPolicy: OnFailure
+resources:
+  limits:
+    cpu: "500m"
+    memory: "256Mi"
+  requests:
+    cpu: "250m"
+    memory: "128Mi"
